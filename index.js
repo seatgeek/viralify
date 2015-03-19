@@ -85,8 +85,8 @@ function viralify(root, packages, transform, options, cb) {
     cb = options;
   }
 
-  var globPrefix = recursive ? '**' : '';
-  var globString = globPrefix + '/node_modules/' + globify(packages) + '/package.json';
+  var globPrefix = recursive ? '**/' : '';
+  var globString = globPrefix + 'node_modules/' + globify(packages) + '/package.json';
 
   glob(globString, { cwd: root }, function (err, relPaths) {
     if (err) return cb(err);
@@ -131,8 +131,8 @@ function sync(root, packages, transform, options) {
   var front = options.front === undefined ? false : options.front,
       recursive = options.recursive === undefined ? true : options.recursive;
 
-  var globPrefix = recursive ? '**' : '';
-  var globString = globPrefix + '/node_modules/' + globify(packages) + '/package.json';
+  var globPrefix = recursive ? '**/' : '';
+  var globString = globPrefix + 'node_modules/' + globify(packages) + '/package.json';
 
   var relPaths = glob.sync(globString, { cwd: root })
   var packs = packsWithTransforms(root, transform, front, relPaths);
