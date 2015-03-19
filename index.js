@@ -20,14 +20,14 @@ function addTransform(front, transform, packfile) {
   if (!pack.browserify) pack.browserify = {};
 
   // "browserify": "index.js" => "browserify": { "index.js": "index.js" } so we can add our transforms
-  if (typeof pack.browserify === 'string') { 
+  if (typeof pack.browserify === 'string') {
     var k = pack.browserify;
     pack.browserify = {};
-    pack.browserify[k] = k; 
+    pack.browserify[k] = k;
   }
 
   if (!pack.browserify.transform) pack.browserify.transform = [];
-  
+
   var before = [].concat(pack.browserify.transform);
 
   transform.forEach(function (tx) {
@@ -57,7 +57,7 @@ function globify(packnames) {
   return '{' + packnames.join(',') + extra + '}';
 }
 
-var go = module.exports = 
+var go = module.exports =
 
 /**
  * Injects the given transform(s) into the `browserify.transform` field of all `package.json`s
@@ -65,7 +65,7 @@ var go = module.exports =
  *
  * If the transform(s) were contained in the `package.json` already, no changes are made and no writes performed.
  * This means that all viralify runs succeeding the first one will be much faster.
- * 
+ *
  * @name viralify
  * @function
  * @param {String} root of the package
@@ -74,16 +74,19 @@ var go = module.exports =
  * @param {Boolean=} front if set transforms are added to the front of the transform field so they run first
  * @param {Function(Error)} cb called when the transform injection is complete
  */
-function viralify(root, packages, transform, front, cb) {
+function viralify(root, packages, transform, options, cb) {
   if (!Array.isArray(packages)) packages = [ packages ];
   if (!Array.isArray(transform)) transform = [ transform ];
 
-  if (typeof front === 'function') {
-    cb = front;
-    front = false;
+  var front = options.front === undefined ? false : options.front,
+      recursive = options.recursive === undefined ? true : options.recursive;
+
+  if (typeof options === 'function') {
+    cb = options;
   }
 
-  var globString = '**/node_modules/' + globify(packages) + '/package.json';
+  var globPrefix = recursive ? '**' : '';
+  var globString = globPrefix + '/node_modules/' + globify(packages) + '/package.json';
 
   glob(globString, { cwd: root }, function (err, relPaths) {
     if (err) return cb(err);
@@ -108,11 +111,11 @@ function viralify(root, packages, transform, front, cb) {
   });
 };
 
-module.exports.sync = 
+module.exports.sync =
 
 /**
  * Same as `viralify` but performed synchronously.
- * 
+ *
  * @name viralivy.sync
  * @function
  * @param {String} root of the package
@@ -121,11 +124,15 @@ module.exports.sync =
  * @param {Boolean=} front if set transforms are added to the front of the transform field so they run first
  * @param {Function(Error)} cb called when the transform injection is complete
  */
-function sync(root, packages, transform, front) {
+function sync(root, packages, transform, options) {
   if (!Array.isArray(packages)) packages = [ packages ];
   if (!Array.isArray(transform)) transform = [ transform ];
 
-  var globString = '**/node_modules/' + globify(packages) + '/package.json';
+  var front = options.front === undefined ? false : options.front,
+      recursive = options.recursive === undefined ? true : options.recursive;
+
+  var globPrefix = recursive ? '**' : '';
+  var globString = globPrefix + '/node_modules/' + globify(packages) + '/package.json';
 
   var relPaths = glob.sync(globString, { cwd: root })
   var packs = packsWithTransforms(root, transform, front, relPaths);
